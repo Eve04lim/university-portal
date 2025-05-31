@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell, BookOpen, Calendar, Clock, FileText, Home, Menu, Star, User, X } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 const UniversityPortal = () => {
@@ -21,19 +22,19 @@ const UniversityPortal = () => {
   ];
 
   const quickLinks = [
-    { name: "履修登録", icon: BookOpen, color: "bg-blue-500" },
-    { name: "成績確認", icon: Star, color: "bg-green-500" },
-    { name: "シラバス", icon: FileText, color: "bg-purple-500" },
-    { name: "図書館", icon: BookOpen, color: "bg-orange-500" },
+    { name: "履修登録", icon: BookOpen, color: "bg-blue-500", href: "/subjects" },
+    { name: "成績確認", icon: Star, color: "bg-green-500", href: "/grades" },
+    { name: "シラバス", icon: FileText, color: "bg-purple-500", href: "/syllabus" },
+    { name: "図書館", icon: BookOpen, color: "bg-orange-500", href: "/library" },
   ];
 
   const menuItems = [
-    { name: "ホーム", icon: Home, active: true },
-    { name: "時間割", icon: Calendar, active: false },
-    { name: "履修科目", icon: BookOpen, active: false },
-    { name: "成績", icon: Star, active: false },
-    { name: "お知らせ", icon: Bell, active: false },
-    { name: "プロフィール", icon: User, active: false },
+    { name: "ホーム", icon: Home, active: true, href: "/" },
+    { name: "時間割", icon: Calendar, active: false, href: "/timetable" },
+    { name: "履修科目", icon: BookOpen, active: false, href: "/subjects" },
+    { name: "成績", icon: Star, active: false, href: "/grades" },
+    { name: "お知らせ", icon: Bell, active: false, href: "/notifications" },
+    { name: "プロフィール", icon: User, active: false, href: "/profile" },
   ];
 
   return (
@@ -49,7 +50,9 @@ const UniversityPortal = () => {
               >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <h1 className="ml-2 text-xl font-bold text-gray-900">大学ポータル</h1>
+              <Link href="/" className="ml-2 text-xl font-bold text-gray-900">
+                大学ポータル
+              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <button className="relative p-2 text-gray-600 hover:text-gray-900">
@@ -70,9 +73,9 @@ const UniversityPortal = () => {
           <aside className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full lg:w-64 bg-white rounded-lg shadow-sm p-4`}>
             <nav className="space-y-2">
               {menuItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
-                  href="#"
+                  href={item.href}
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     item.active
                       ? 'bg-blue-100 text-blue-700'
@@ -81,7 +84,7 @@ const UniversityPortal = () => {
                 >
                   <item.icon size={18} className="mr-3" />
                   {item.name}
-                </a>
+                </Link>
               ))}
             </nav>
           </aside>
@@ -97,9 +100,17 @@ const UniversityPortal = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* 今日のスケジュール */}
               <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center mb-4">
-                  <Clock className="text-blue-600 mr-2" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-900">今日のスケジュール</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <Clock className="text-blue-600 mr-2" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">今日のスケジュール</h3>
+                  </div>
+                  <Link 
+                    href="/timetable"
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    時間割を見る →
+                  </Link>
                 </div>
                 <div className="space-y-3">
                   {todaySchedule.map((item, index) => (
@@ -121,15 +132,16 @@ const UniversityPortal = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクセス</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {quickLinks.map((link) => (
-                    <button
+                    <Link
                       key={link.name}
+                      href={link.href}
                       className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
                     >
                       <div className={`p-3 rounded-full ${link.color} text-white mb-2`}>
                         <link.icon size={20} />
                       </div>
                       <span className="text-sm font-medium text-gray-700">{link.name}</span>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               </div>

@@ -28,6 +28,19 @@ export interface Schedule {
   room: string;
 }
 
+// 時間割データ（時間割ページ用）
+export interface TimetableItem {
+  id: string;
+  subject: string;
+  professor: string;
+  room: string;
+  startTime: string;
+  endTime: string;
+  dayOfWeek: number; // 0: 日, 1: 月, 2: 火, 3: 水, 4: 木, 5: 金, 6: 土
+  period: number; // 1-7時限
+  color: string;
+}
+
 // お知らせ
 export interface Notification {
   id: string;
