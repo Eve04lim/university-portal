@@ -1,12 +1,10 @@
 'use client';
 
-import { Bell, BookOpen, Calendar, Clock, FileText, Home, Menu, Star, User, X } from 'lucide-react';
+import { Award, BookOpen, Calendar, ChevronRight, Clock, FileText, Star, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { ResponsiveCard, ResponsiveGrid } from '../ui/ResponsiveComponents';
 
-const UniversityPortal = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+const Dashboard = () => {
   // サンプルデータ
   const notifications = [
     { id: 1, title: "レポート提出期限のお知らせ", content: "データベース論のレポート提出期限は明日までです", time: "2時間前", urgent: true },
@@ -28,157 +26,162 @@ const UniversityPortal = () => {
     { name: "図書館", icon: BookOpen, color: "bg-orange-500", href: "/library" },
   ];
 
-  const menuItems = [
-    { name: "ホーム", icon: Home, active: true, href: "/" },
-    { name: "時間割", icon: Calendar, active: false, href: "/timetable" },
-    { name: "履修科目", icon: BookOpen, active: false, href: "/subjects" },
-    { name: "成績", icon: Star, active: false, href: "/grades" },
-    { name: "お知らせ", icon: Bell, active: false, href: "/notifications" },
-    { name: "プロフィール", icon: User, active: false, href: "/profile" },
+  const stats = [
+    { name: "今学期履修単位", value: "24", unit: "単位", icon: BookOpen, color: "text-blue-600", change: "+2" },
+    { name: "通算GPA", value: "3.75", unit: "/4.0", icon: Award, color: "text-green-600", change: "+0.1" },
+    { name: "出席率", value: "92", unit: "%", icon: TrendingUp, color: "text-purple-600", change: "+3%" },
+    { name: "今日の授業", value: "4", unit: "コマ", icon: Calendar, color: "text-orange-600", change: "" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+    <div className="space-y-6">
+      {/* ウェルカムセクション */}
+      <ResponsiveCard className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 sm:p-8">
+        <div className="max-w-4xl">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">おかえりなさい、田中太郎さん</h1>
+          <p className="text-blue-100 text-sm sm:text-base">今日の予定を確認して、充実した一日を過ごしましょう。</p>
+        </div>
+      </ResponsiveCard>
+
+      {/* 統計情報 */}
+      <ResponsiveGrid 
+        cols={{ default: 2, md: 4 }}
+        gap={4}
+        className="mb-6"
+      >
+        {stats.map((stat, index) => (
+          <ResponsiveCard key={index} className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 line-clamp-1">
+                  {stat.name}
+                </p>
+                <div className="flex items-baseline">
+                  <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 ml-1">
+                    {stat.unit}
+                  </p>
+                </div>
+                {stat.change && (
+                  <p className="text-xs text-green-600 mt-1">
+                    {stat.change}
+                  </p>
+                )}
+              </div>
+              <stat.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${stat.color} opacity-80`} />
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      <ResponsiveGrid 
+        cols={{ default: 1, lg: 3 }}
+        gap={6}
+      >
+        {/* 今日のスケジュール */}
+        <div className="lg:col-span-2">
+          <ResponsiveCard className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Clock className="text-blue-600 mr-2 w-5 h-5" />
+                <h2 className="text-lg font-semibold text-gray-900">今日のスケジュール</h2>
+              </div>
+              <Link 
+                href="/timetable"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
               >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <Link href="/" className="ml-2 text-xl font-bold text-gray-900">
-                大学ポータル
+                時間割を見る 
+                <ChevronRight size={16} className="ml-1" />
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-600 hover:text-gray-900">
-                <Bell size={20} />
-                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400"></span>
-              </button>
-              <button className="p-2 text-gray-600 hover:text-gray-900">
-                <User size={20} />
-              </button>
+            <div className="space-y-3">
+              {todaySchedule.map((item, index) => (
+                <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex-shrink-0 w-20 sm:w-24 text-xs sm:text-sm text-gray-600 font-medium">
+                    {item.time}
+                  </div>
+                  <div className="flex-1 ml-3 sm:ml-4 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm sm:text-base line-clamp-1">
+                      {item.subject}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600 line-clamp-1">
+                      {item.room} | {item.professor}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </ResponsiveCard>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* サイドバー */}
-          <aside className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full lg:w-64 bg-white rounded-lg shadow-sm p-4`}>
-            <nav className="space-y-2">
-              {menuItems.map((item) => (
+        {/* クイックリンク */}
+        <div>
+          <ResponsiveCard className="p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">クイックアクセス</h2>
+            <ResponsiveGrid 
+              cols={{ default: 2 }}
+              gap={3}
+            >
+              {quickLinks.map((link) => (
                 <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    item.active
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                  key={link.name}
+                  href={link.href}
+                  className="flex flex-col items-center p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all touch-target"
                 >
-                  <item.icon size={18} className="mr-3" />
-                  {item.name}
+                  <div className={`p-2 sm:p-3 rounded-full ${link.color} text-white mb-2`}>
+                    <link.icon size={16} className="sm:w-5 sm:h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 text-center line-clamp-1">
+                    {link.name}
+                  </span>
                 </Link>
               ))}
-            </nav>
-          </aside>
-
-          {/* メインコンテンツ */}
-          <main className="flex-1 space-y-6">
-            {/* ウェルカムセクション */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-              <h2 className="text-2xl font-bold mb-2">おかえりなさい、田中太郎さん</h2>
-              <p className="opacity-90">今日の予定を確認して、充実した一日を過ごしましょう。</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* 今日のスケジュール */}
-              <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Clock className="text-blue-600 mr-2" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">今日のスケジュール</h3>
-                  </div>
-                  <Link 
-                    href="/timetable"
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    時間割を見る →
-                  </Link>
-                </div>
-                <div className="space-y-3">
-                  {todaySchedule.map((item, index) => (
-                    <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0 w-24 text-sm text-gray-600 font-medium">
-                        {item.time}
-                      </div>
-                      <div className="flex-1 ml-4">
-                        <div className="font-medium text-gray-900">{item.subject}</div>
-                        <div className="text-sm text-gray-600">{item.room} | {item.professor}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* クイックリンク */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクセス</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {quickLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
-                    >
-                      <div className={`p-3 rounded-full ${link.color} text-white mb-2`}>
-                        <link.icon size={20} />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{link.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* お知らせ */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center mb-4">
-                <Bell className="text-blue-600 mr-2" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">最新のお知らせ</h3>
-              </div>
-              <div className="space-y-4">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className={`p-4 rounded-lg border-l-4 ${
-                    notification.urgent ? 'border-red-400 bg-red-50' : 'border-blue-400 bg-blue-50'
-                  }`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 mb-1">{notification.title}</h4>
-                        <p className="text-gray-700 text-sm mb-2">{notification.content}</p>
-                        <span className="text-xs text-gray-500">{notification.time}</span>
-                      </div>
-                      {notification.urgent && (
-                        <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                          緊急
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </main>
+            </ResponsiveGrid>
+          </ResponsiveCard>
         </div>
-      </div>
+      </ResponsiveGrid>
+
+      {/* お知らせ */}
+      <ResponsiveCard className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">最新のお知らせ</h2>
+          <Link 
+            href="/notifications"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
+          >
+            すべて見る
+            <ChevronRight size={16} className="ml-1" />
+          </Link>
+        </div>
+        <div className="space-y-3 sm:space-y-4">
+          {notifications.map((notification) => (
+            <div key={notification.id} className={`p-3 sm:p-4 rounded-lg border-l-4 ${
+              notification.urgent ? 'border-red-400 bg-red-50' : 'border-blue-400 bg-blue-50'
+            }`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base line-clamp-1">
+                    {notification.title}
+                  </h3>
+                  <p className="text-gray-700 text-xs sm:text-sm mb-2 line-clamp-2">
+                    {notification.content}
+                  </p>
+                  <span className="text-xs text-gray-500">{notification.time}</span>
+                </div>
+                {notification.urgent && (
+                  <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full flex-shrink-0">
+                    緊急
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ResponsiveCard>
     </div>
   );
 };
 
-export default UniversityPortal;
+export default Dashboard;
