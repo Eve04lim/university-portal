@@ -1,7 +1,8 @@
 'use client';
 
-import { Award, BarChart3, BookOpen, Calendar, Download, Eye, TrendingUp, X } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Calendar, Download, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { Button, ResponsiveCard, ResponsiveGrid, ResponsiveModal, ResponsiveTable, Select } from '../ui/ResponsiveComponents';
 
 // 成績データの型定義
 interface Grade {
@@ -159,6 +160,21 @@ const GradesPage = () => {
   const semesters = ['前期', '後期'];
   const categories = ['必修', '選択必修', '選択', '自由'];
 
+  const yearOptions = [
+    { value: 'all', label: 'すべての年度' },
+    ...years.map(year => ({ value: year, label: `${year}年度` }))
+  ];
+
+  const semesterOptions = [
+    { value: 'all', label: 'すべての学期' },
+    ...semesters.map(semester => ({ value: semester, label: semester }))
+  ];
+
+  const categoryOptions = [
+    { value: 'all', label: 'すべてのカテゴリ' },
+    ...categories.map(category => ({ value: category, label: category }))
+  ];
+
   // フィルタリング
   const filteredGrades = gradesData.filter(grade => {
     if (selectedYear !== 'all' && grade.year.toString() !== selectedYear) return false;
@@ -220,321 +236,298 @@ const GradesPage = () => {
     setSelectedGrade(null);
   };
 
+  // テーブル用のカラム定義
+  const tableColumns = [
+    {
+      key: 'subjectName',
+      label: '科目',
+      render: (value: string, row: Grade) => (
+        <div>
+          <div className="font-medium text-gray-900">{row.subjectName}</div>
+          <div className="text-sm text-gray-500">{row.subjectCode}</div>
+        </div>
+      )
+    },
+    {
+      key: 'professor',
+      label: '担当教員',
+      hideOnMobile: true
+    },
+    {
+      key: 'semester',
+      label: '学期',
+      render: (value: string, row: Grade) => `${row.year}年 ${row.semester}`
+    },
+    {
+      key: 'credits',
+      label: '単位',
+    },
+    {
+      key: 'category',
+      label: 'カテゴリ',
+      hideOnMobile: true,
+      render: (value: string) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(value)}`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'grade',
+      label: '成績',
+      render: (value: string) => (
+        <span className={`px-3 py-1 text-sm font-medium rounded-full ${getGradeColor(value)}`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'gpa',
+      label: 'GPA',
+      render: (value: number, row: Grade) => 
+        row.grade !== '履修中' ? value.toFixed(1) : '-'
+    },
+    {
+      key: 'finalScore',
+      label: '点数',
+      hideOnMobile: true,
+      render: (value: number, row: Grade) => 
+        row.grade !== '履修中' ? value.toString() : '-'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* ヘッダー */}
-        <div className="mb-6">
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">成績確認</h1>
+          <p className="text-gray-600 text-sm sm:text-base">あなたの学習成果を確認できます</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="primary"
+            onClick={() => setViewMode(viewMode === 'table' ? 'chart' : 'table')}
+          >
+            {viewMode === 'table' ? <BarChart3 size={16} className="mr-2" /> : <BookOpen size={16} className="mr-2" />}
+            {viewMode === 'table' ? 'グラフ表示' : 'テーブル表示'}
+          </Button>
+          <Button variant="secondary">
+            <Download size={16} className="mr-2" />
+            <span className="hidden sm:inline">成績表出力</span>
+            <span className="sm:hidden">出力</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* 統計情報 */}
+      <ResponsiveGrid cols={{ default: 2, md: 4 }} gap={4}>
+        <ResponsiveCard className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">成績確認</h1>
-              <p className="text-gray-600">あなたの学習成果を確認できます</p>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">通算GPA</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600">{overallGPA.toFixed(2)}</div>
             </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setViewMode(viewMode === 'table' ? 'chart' : 'table')}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {viewMode === 'table' ? <BarChart3 size={16} className="mr-2" /> : <BookOpen size={16} className="mr-2" />}
-                {viewMode === 'table' ? 'グラフ表示' : 'テーブル表示'}
-              </button>
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                <Download size={16} className="mr-2" />
-                成績表出力
-              </button>
-            </div>
+            <Award className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
           </div>
-        </div>
+        </ResponsiveCard>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">取得単位数</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-green-600">{totalCredits}</div>
+            </div>
+            <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+          </div>
+        </ResponsiveCard>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">履修科目数</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-purple-600">{completedGrades.length}</div>
+            </div>
+            <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
+          </div>
+        </ResponsiveCard>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">平均点</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-orange-600">
+                {completedGrades.length > 0 
+                  ? (completedGrades.reduce((sum, g) => sum + g.finalScore, 0) / completedGrades.length).toFixed(1)
+                  : 0}
+              </div>
+            </div>
+            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
+          </div>
+        </ResponsiveCard>
+      </ResponsiveGrid>
 
-        {/* 統計情報 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">通算GPA</h3>
-                <div className="text-3xl font-bold text-blue-600">{overallGPA.toFixed(2)}</div>
-              </div>
-              <Award className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">取得単位数</h3>
-                <div className="text-3xl font-bold text-green-600">{totalCredits}</div>
-              </div>
-              <BookOpen className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">履修科目数</h3>
-                <div className="text-3xl font-bold text-purple-600">{completedGrades.length}</div>
-              </div>
-              <Calendar className="h-8 w-8 text-purple-600" />
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">平均点</h3>
-                <div className="text-3xl font-bold text-orange-600">
-                  {completedGrades.length > 0 
-                    ? (completedGrades.reduce((sum, g) => sum + g.finalScore, 0) / completedGrades.length).toFixed(1)
-                    : 0}
-                </div>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-            </div>
-          </div>
+      {/* フィルター */}
+      <ResponsiveCard className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            options={yearOptions}
+          />
+          <Select
+            value={selectedSemester}
+            onChange={(e) => setSelectedSemester(e.target.value)}
+            options={semesterOptions}
+          />
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            options={categoryOptions}
+          />
         </div>
+      </ResponsiveCard>
 
-        {/* フィルター */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">すべての年度</option>
-              {years.map(year => (
-                <option key={year} value={year}>{year}年度</option>
-              ))}
-            </select>
-            <select
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">すべての学期</option>
-              {semesters.map(semester => (
-                <option key={semester} value={semester}>{semester}</option>
-              ))}
-            </select>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">すべてのカテゴリ</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {viewMode === 'table' ? (
-          /* 成績テーブル */
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">科目</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当教員</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学期</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">単位</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">カテゴリ</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成績</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GPA</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">点数</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredGrades.map((grade) => (
-                    <tr key={grade.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{grade.subjectName}</div>
-                          <div className="text-sm text-gray-500">{grade.subjectCode}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {grade.professor}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {grade.year}年 {grade.semester}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {grade.credits}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(grade.category)}`}>
-                          {grade.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 text-sm font-medium rounded-full ${getGradeColor(grade.grade)}`}>
-                          {grade.grade}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {grade.grade !== '履修中' ? grade.gpa.toFixed(1) : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {grade.grade !== '履修中' ? grade.finalScore : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button 
-                          onClick={() => handleGradeClick(grade)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Eye size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          /* チャート表示 */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 成績分布 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">成績分布</h3>
-              <div className="space-y-3">
-                {Object.entries(gradeDistribution).map(([grade, count]) => (
-                  count > 0 && (
-                    <div key={grade} className="flex items-center">
-                      <div className={`w-12 text-center py-1 text-sm font-medium rounded ${getGradeColor(grade)}`}>
-                        {grade}
-                      </div>
-                      <div className="flex-1 mx-3">
-                        <div className="bg-gray-200 rounded-full h-4">
-                          <div 
-                            className="bg-blue-600 h-4 rounded-full"
-                            style={{ width: `${(count / completedGrades.length) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600 w-12 text-right">
-                        {count}科目
+      {viewMode === 'table' ? (
+        /* 成績テーブル */
+        <ResponsiveCard className="overflow-hidden">
+          <ResponsiveTable
+            columns={tableColumns}
+            data={filteredGrades}
+            onRowClick={handleGradeClick}
+            emptyMessage="条件に一致する成績がありません"
+          />
+        </ResponsiveCard>
+      ) : (
+        /* チャート表示 */
+        <ResponsiveGrid cols={{ default: 1, lg: 2 }} gap={6}>
+          {/* 成績分布 */}
+          <ResponsiveCard className="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">成績分布</h3>
+            <div className="space-y-3">
+              {Object.entries(gradeDistribution).map(([grade, count]) => (
+                count > 0 && (
+                  <div key={grade} className="flex items-center">
+                    <div className={`w-12 text-center py-1 text-sm font-medium rounded ${getGradeColor(grade)}`}>
+                      {grade}
+                    </div>
+                    <div className="flex-1 mx-3">
+                      <div className="bg-gray-200 rounded-full h-4">
+                        <div 
+                          className="bg-blue-600 h-4 rounded-full"
+                          style={{ width: `${(count / completedGrades.length) * 100}%` }}
+                        ></div>
                       </div>
                     </div>
-                  )
-                ))}
-              </div>
-            </div>
-
-            {/* GPA推移 */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">GPA推移</h3>
-              <div className="space-y-4">
-                {semesterGPAData.map((data, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium text-gray-900">{data.semester}</div>
-                      <div className="text-sm text-gray-600">{data.credits}単位</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">{data.gpa.toFixed(2)}</div>
-                      <div className="text-sm text-gray-500">GPA</div>
+                    <div className="text-sm text-gray-600 w-12 text-right">
+                      {count}科目
                     </div>
                   </div>
-                ))}
+                )
+              ))}
+            </div>
+          </ResponsiveCard>
+
+          {/* GPA推移 */}
+          <ResponsiveCard className="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">GPA推移</h3>
+            <div className="space-y-4">
+              {semesterGPAData.map((data, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">{data.semester}</div>
+                    <div className="text-sm text-gray-600">{data.credits}単位</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">{data.gpa.toFixed(2)}</div>
+                    <div className="text-sm text-gray-500">GPA</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ResponsiveCard>
+        </ResponsiveGrid>
+      )}
+
+      {/* 成績詳細モーダル */}
+      <ResponsiveModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title="成績詳細"
+        size="lg"
+      >
+        {selectedGrade && (
+          <div className="p-6 space-y-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 className="text-xl font-bold text-gray-900">{selectedGrade.subjectName}</h3>
+                <span className={`px-2 py-1 text-sm font-medium rounded ${getCategoryColor(selectedGrade.category)}`}>
+                  {selectedGrade.category}
+                </span>
+                <span className={`px-3 py-1 text-sm font-medium rounded-full ${getGradeColor(selectedGrade.grade)}`}>
+                  {selectedGrade.grade}
+                </span>
               </div>
+              <p className="text-gray-600">{selectedGrade.subjectCode} | {selectedGrade.professor}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">学期</div>
+                  <div className="text-lg text-gray-900">{selectedGrade.year}年 {selectedGrade.semester}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">単位数</div>
+                  <div className="text-lg text-gray-900">{selectedGrade.credits}単位</div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">GPA</div>
+                  <div className="text-lg text-gray-900">{selectedGrade.grade !== '履修中' ? selectedGrade.gpa.toFixed(1) : '未確定'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">最終点数</div>
+                  <div className="text-lg text-gray-900">{selectedGrade.grade !== '履修中' ? selectedGrade.finalScore : '未確定'}点</div>
+                </div>
+              </div>
+            </div>
+
+            {selectedGrade.grade !== '履修中' && (
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-900 mb-3">詳細評価</h4>
+                <ResponsiveGrid cols={{ default: 1, sm: 3 }} gap={4}>
+                  {selectedGrade.examScore && (
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{selectedGrade.examScore}</div>
+                      <div className="text-sm text-gray-600">試験</div>
+                    </div>
+                  )}
+                  {selectedGrade.reportScore && (
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{selectedGrade.reportScore}</div>
+                      <div className="text-sm text-gray-600">レポート</div>
+                    </div>
+                  )}
+                  {selectedGrade.attendanceScore && (
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{selectedGrade.attendanceScore}</div>
+                      <div className="text-sm text-gray-600">出席</div>
+                    </div>
+                  )}
+                </ResponsiveGrid>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button fullWidth variant="primary">
+                詳細レポート
+              </Button>
+              <Button fullWidth variant="secondary">
+                成績証明書
+              </Button>
             </div>
           </div>
         )}
-      </div>
-
-      {/* 成績詳細モーダル */}
-      {isModalOpen && selectedGrade && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">成績詳細</h2>
-                <button
-                  onClick={closeModal}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-xl font-bold text-gray-900">{selectedGrade.subjectName}</h3>
-                    <span className={`px-2 py-1 text-sm font-medium rounded ${getCategoryColor(selectedGrade.category)}`}>
-                      {selectedGrade.category}
-                    </span>
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${getGradeColor(selectedGrade.grade)}`}>
-                      {selectedGrade.grade}
-                    </span>
-                  </div>
-                  <p className="text-gray-600">{selectedGrade.subjectCode} | {selectedGrade.professor}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-gray-500">学期</div>
-                      <div className="text-lg text-gray-900">{selectedGrade.year}年 {selectedGrade.semester}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-500">単位数</div>
-                      <div className="text-lg text-gray-900">{selectedGrade.credits}単位</div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-gray-500">GPA</div>
-                      <div className="text-lg text-gray-900">{selectedGrade.grade !== '履修中' ? selectedGrade.gpa.toFixed(1) : '未確定'}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-500">最終点数</div>
-                      <div className="text-lg text-gray-900">{selectedGrade.grade !== '履修中' ? selectedGrade.finalScore : '未確定'}点</div>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedGrade.grade !== '履修中' && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-3">詳細評価</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {selectedGrade.examScore && (
-                        <div className="text-center p-3 bg-blue-50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">{selectedGrade.examScore}</div>
-                          <div className="text-sm text-gray-600">試験</div>
-                        </div>
-                      )}
-                      {selectedGrade.reportScore && (
-                        <div className="text-center p-3 bg-green-50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">{selectedGrade.reportScore}</div>
-                          <div className="text-sm text-gray-600">レポート</div>
-                        </div>
-                      )}
-                      {selectedGrade.attendanceScore && (
-                        <div className="text-center p-3 bg-purple-50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">{selectedGrade.attendanceScore}</div>
-                          <div className="text-sm text-gray-600">出席</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    詳細レポート
-                  </button>
-                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-                    成績証明書
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </ResponsiveModal>
     </div>
   );
 };

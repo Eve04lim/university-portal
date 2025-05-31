@@ -1,7 +1,8 @@
 'use client';
 
-import { AlertTriangle, Archive, Bell, Calendar, ChevronRight, Clock, Eye, Info, Search, Star, Tag, User, X } from 'lucide-react';
+import { AlertTriangle, Archive, Bell, Calendar, ChevronRight, Clock, Eye, Info, Star, Tag, User } from 'lucide-react';
 import React, { useState } from 'react';
+import { Button, Input, ResponsiveCard, ResponsiveGrid, ResponsiveModal, Select } from '../ui/ResponsiveComponents';
 
 // お知らせデータの型定義
 interface Notification {
@@ -276,6 +277,19 @@ TA: ta-database@university.ac.jp`,
   const categories = ['重要', '一般', 'イベント', 'システム', '休講', 'レポート'];
   const priorities = ['urgent', 'high', 'normal', 'low'];
 
+  const categoryOptions = [
+    { value: 'all', label: 'すべてのカテゴリ' },
+    ...categories.map(cat => ({ value: cat, label: cat }))
+  ];
+
+  const priorityOptions = [
+    { value: 'all', label: 'すべての優先度' },
+    { value: 'urgent', label: '緊急' },
+    { value: 'high', label: '高' },
+    { value: 'normal', label: '普通' },
+    { value: 'low', label: '低' }
+  ];
+
   // フィルタリング
   const filteredNotifications = notifications.filter(notification => {
     if (selectedCategory !== 'all' && notification.category !== selectedCategory) return false;
@@ -379,80 +393,67 @@ TA: ta-database@university.ac.jp`,
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* ヘッダー */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">お知らせ</h1>
-          <p className="text-gray-600">大学からの重要な情報をお知らせします</p>
-        </div>
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">お知らせ</h1>
+        <p className="text-gray-600 text-sm sm:text-base">大学からの重要な情報をお知らせします</p>
+      </div>
 
-        {/* 統計情報 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">未読</h3>
-                <div className="text-3xl font-bold text-red-600">{unreadCount}</div>
-              </div>
-              <Bell className="h-8 w-8 text-red-600" />
+      {/* 統計情報 */}
+      <ResponsiveGrid cols={{ default: 3 }} gap={4}>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">未読</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-red-600">{unreadCount}</div>
             </div>
+            <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">緊急</h3>
-                <div className="text-3xl font-bold text-orange-600">{urgentCount}</div>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-orange-600" />
+        </ResponsiveCard>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">緊急</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-orange-600">{urgentCount}</div>
             </div>
+            <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-1">お気に入り</h3>
-                <div className="text-3xl font-bold text-yellow-600">{starredCount}</div>
-              </div>
-              <Star className="h-8 w-8 text-yellow-600" />
+        </ResponsiveCard>
+        <ResponsiveCard className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1">お気に入り</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{starredCount}</div>
             </div>
+            <Star className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
           </div>
-        </div>
+        </ResponsiveCard>
+      </ResponsiveGrid>
 
-        {/* フィルター */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="タイトル、内容、投稿者で検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <select
+      {/* フィルター */}
+      <ResponsiveCard className="p-4 sm:p-6">
+        <div className="space-y-4">
+          <div>
+            <Input
+              type="text"
+              placeholder="タイトル、内容、投稿者で検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">すべてのカテゴリ</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            <select
+              options={categoryOptions}
+            />
+            <Select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">すべての優先度</option>
-              <option value="urgent">緊急</option>
-              <option value="high">高</option>
-              <option value="normal">普通</option>
-              <option value="low">低</option>
-            </select>
-            <label className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
+              options={priorityOptions}
+            />
+            <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg touch-target">
               <input
                 type="checkbox"
                 checked={showUnreadOnly}
@@ -463,222 +464,213 @@ TA: ta-database@university.ac.jp`,
             </label>
           </div>
         </div>
+      </ResponsiveCard>
 
-        {/* お知らせリスト */}
-        <div className="space-y-4">
-          {filteredNotifications.map((notification) => (
-            <div
-              key={notification.id}
-              onClick={() => handleNotificationClick(notification)}
-              className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 ${
-                notification.read ? 'border-gray-200' : 'border-blue-500'
-              }`}
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      {getPriorityIcon(notification.priority)}
-                      <h3 className={`text-lg font-semibold ${notification.read ? 'text-gray-900' : 'text-gray-900 font-bold'}`}>
-                        {notification.title}
-                      </h3>
-                      {!notification.read && (
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${getCategoryColor(notification.category)}`}>
-                        {notification.category}
-                      </span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(notification.priority)}`}>
-                        {notification.priority === 'urgent' && '緊急'}
-                        {notification.priority === 'high' && '高'}
-                        {notification.priority === 'normal' && '普通'}
-                        {notification.priority === 'low' && '低'}
-                      </span>
-                      {notification.expiresAt && new Date() < notification.expiresAt && (
-                        <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-50 text-yellow-600 border border-yellow-200">
-                          期限あり
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-600 mb-3 line-clamp-2">{notification.summary}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <User size={14} />
-                        {notification.author}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        {formatRelativeTime(notification.createdAt)}
-                      </span>
-                      {notification.attachments && notification.attachments.length > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Tag size={14} />
-                          添付 {notification.attachments.length}件
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <button
-                      onClick={(e) => toggleStar(notification.id, e)}
-                      className={`p-1 rounded-full transition-colors ${
-                        notification.starred 
-                          ? 'text-yellow-500 hover:text-yellow-600' 
-                          : 'text-gray-400 hover:text-yellow-500'
-                      }`}
-                    >
-                      <Star size={16} className={notification.starred ? 'fill-current' : ''} />
-                    </button>
-                    {!notification.read && (
-                      <button
-                        onClick={(e) => markAsRead(notification.id, e)}
-                        className="p-1 text-gray-400 hover:text-blue-600 rounded-full transition-colors"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    )}
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredNotifications.length === 0 && (
-          <div className="text-center py-12">
-            <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">お知らせが見つかりません</h3>
-            <p className="text-gray-600">検索条件を変更してみてください。</p>
-          </div>
-        )}
-      </div>
-
-      {/* お知らせ詳細モーダル */}
-      {isModalOpen && selectedNotification && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">お知らせ詳細</h2>
-                <button
-                  onClick={closeModal}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    {getPriorityIcon(selectedNotification.priority)}
-                    <h3 className="text-xl font-bold text-gray-900">{selectedNotification.title}</h3>
-                    <span className={`px-2 py-1 text-sm font-medium rounded ${getCategoryColor(selectedNotification.category)}`}>
-                      {selectedNotification.category}
-                    </span>
-                    <span className={`px-2 py-1 text-sm font-medium rounded border ${getPriorityColor(selectedNotification.priority)}`}>
-                      {selectedNotification.priority === 'urgent' && '緊急'}
-                      {selectedNotification.priority === 'high' && '高'}
-                      {selectedNotification.priority === 'normal' && '普通'}
-                      {selectedNotification.priority === 'low' && '低'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
-                    <span className="flex items-center gap-1">
-                      <User size={14} />
-                      {selectedNotification.author} ({selectedNotification.department})
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {formatDate(selectedNotification.createdAt)}
-                    </span>
-                    {selectedNotification.expiresAt && (
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} />
-                        期限: {formatDate(selectedNotification.expiresAt)}
-                      </span>
-                    )}
-                  </div>
-
-                  {selectedNotification.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {selectedNotification.tags.map((tag, index) => (
-                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
+      {/* お知らせリスト */}
+      <div className="space-y-3 sm:space-y-4">
+        {filteredNotifications.map((notification) => (
+          <ResponsiveCard
+            key={notification.id}
+            hover
+            clickable
+            onClick={() => handleNotificationClick(notification)}
+            className={`p-4 sm:p-6 border-l-4 ${
+              notification.read ? 'border-gray-200' : 'border-blue-500'
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {getPriorityIcon(notification.priority)}
+                  <h3 className={`text-base sm:text-lg font-semibold line-clamp-1 ${notification.read ? 'text-gray-900' : 'text-gray-900 font-bold'}`}>
+                    {notification.title}
+                  </h3>
+                  {!notification.read && (
+                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
                   )}
                 </div>
-
-                <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {selectedNotification.content}
-                  </div>
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${getCategoryColor(notification.category)}`}>
+                    {notification.category}
+                  </span>
+                  <span className={`px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(notification.priority)}`}>
+                    {notification.priority === 'urgent' && '緊急'}
+                    {notification.priority === 'high' && '高'}
+                    {notification.priority === 'normal' && '普通'}
+                    {notification.priority === 'low' && '低'}
+                  </span>
+                  {notification.expiresAt && new Date() < notification.expiresAt && (
+                    <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-50 text-yellow-600 border border-yellow-200">
+                      期限あり
+                    </span>
+                  )}
                 </div>
-
-                {selectedNotification.attachments && selectedNotification.attachments.length > 0 && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-3">添付ファイル</h4>
-                    <div className="space-y-2">
-                      {selectedNotification.attachments.map((attachment, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                            <Tag size={16} className="text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{attachment}</div>
-                            <div className="text-xs text-gray-500">PDFファイル</div>
-                          </div>
-                          <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                            ダウンロード
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-900 mb-3">対象者</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedNotification.targetAudience.map((audience, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
-                        {audience}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button 
-                    onClick={(e) => toggleStar(selectedNotification.id, e)}
-                    className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                      selectedNotification.starred 
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
-                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                    }`}
-                  >
-                    <Star size={16} className={`mr-2 ${selectedNotification.starred ? 'fill-current' : ''}`} />
-                    {selectedNotification.starred ? 'お気に入り解除' : 'お気に入り'}
-                  </button>
-                  <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    <Archive size={16} className="mr-2" />
-                    アーカイブ
-                  </button>
-                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-                    印刷
-                  </button>
+                <p className="text-gray-600 mb-3 text-sm sm:text-base line-clamp-2">{notification.summary}</p>
+                <div className="flex items-center gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <User size={14} />
+                    {notification.author}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar size={14} />
+                    {formatRelativeTime(notification.createdAt)}
+                  </span>
+                  {notification.attachments && notification.attachments.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Tag size={14} />
+                      添付 {notification.attachments.length}件
+                    </span>
+                  )}
                 </div>
               </div>
+              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                <button
+                  onClick={(e) => toggleStar(notification.id, e)}
+                  className={`p-1 rounded-full transition-colors touch-target ${
+                    notification.starred 
+                      ? 'text-yellow-500 hover:text-yellow-600' 
+                      : 'text-gray-400 hover:text-yellow-500'
+                  }`}
+                >
+                  <Star size={16} className={notification.starred ? 'fill-current' : ''} />
+                </button>
+                {!notification.read && (
+                  <button
+                    onClick={(e) => markAsRead(notification.id, e)}
+                    className="p-1 text-gray-400 hover:text-blue-600 rounded-full transition-colors touch-target"
+                  >
+                    <Eye size={16} />
+                  </button>
+                )}
+                <ChevronRight size={16} className="text-gray-400" />
+              </div>
             </div>
-          </div>
+          </ResponsiveCard>
+        ))}
+      </div>
+
+      {filteredNotifications.length === 0 && (
+        <div className="text-center py-12">
+          <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">お知らせが見つかりません</h3>
+          <p className="text-gray-600">検索条件を変更してみてください。</p>
         </div>
       )}
+
+      {/* お知らせ詳細モーダル */}
+      <ResponsiveModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title="お知らせ詳細"
+        size="xl"
+      >
+        {selectedNotification && (
+          <div className="p-6 space-y-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                {getPriorityIcon(selectedNotification.priority)}
+                <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{selectedNotification.title}</h3>
+                <span className={`px-2 py-1 text-sm font-medium rounded ${getCategoryColor(selectedNotification.category)}`}>
+                  {selectedNotification.category}
+                </span>
+                <span className={`px-2 py-1 text-sm font-medium rounded border ${getPriorityColor(selectedNotification.priority)}`}>
+                  {selectedNotification.priority === 'urgent' && '緊急'}
+                  {selectedNotification.priority === 'high' && '高'}
+                  {selectedNotification.priority === 'normal' && '普通'}
+                  {selectedNotification.priority === 'low' && '低'}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-6 text-sm text-gray-600 mb-4 flex-wrap">
+                <span className="flex items-center gap-1">
+                  <User size={14} />
+                  {selectedNotification.author} ({selectedNotification.department})
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar size={14} />
+                  {formatDate(selectedNotification.createdAt)}
+                </span>
+                {selectedNotification.expiresAt && (
+                  <span className="flex items-center gap-1">
+                    <Clock size={14} />
+                    期限: {formatDate(selectedNotification.expiresAt)}
+                  </span>
+                )}
+              </div>
+
+              {selectedNotification.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedNotification.tags.map((tag, index) => (
+                    <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="prose max-w-none">
+              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm sm:text-base">
+                {selectedNotification.content}
+              </div>
+            </div>
+
+            {selectedNotification.attachments && selectedNotification.attachments.length > 0 && (
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-900 mb-3">添付ファイル</h4>
+                <div className="space-y-2">
+                  {selectedNotification.attachments.map((attachment, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                        <Tag size={16} className="text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 line-clamp-1">{attachment}</div>
+                        <div className="text-xs text-gray-500">PDFファイル</div>
+                      </div>
+                      <Button size="sm" variant="primary">
+                        ダウンロード
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-gray-900 mb-3">対象者</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedNotification.targetAudience.map((audience, index) => (
+                  <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
+                    {audience}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStar(selectedNotification.id, e);
+                }}
+                variant={selectedNotification.starred ? "primary" : "secondary"}
+                className="flex-1"
+              >
+                <Star size={16} className={`mr-2 ${selectedNotification.starred ? 'fill-current' : ''}`} />
+                {selectedNotification.starred ? 'お気に入り解除' : 'お気に入り'}
+              </Button>
+              <Button variant="primary" className="flex-1">
+                <Archive size={16} className="mr-2" />
+                アーカイブ
+              </Button>
+              <Button variant="secondary" className="flex-1">
+                印刷
+              </Button>
+            </div>
+          </div>
+        )}
+      </ResponsiveModal>
     </div>
   );
 };
