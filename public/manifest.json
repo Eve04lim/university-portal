@@ -1,0 +1,134 @@
+{
+  "name": "University Portal - 大学ポータル",
+  "short_name": "UniPortal",
+  "description": "大学生活を支援する包括的なポータルアプリケーション - 成績管理、時間割、学習分析、お知らせ機能を提供",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ja",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "成績確認",
+      "short_name": "成績",
+      "description": "現在の成績とGPAを確認",
+      "url": "/grades",
+      "icons": [{ "src": "/icons/grades-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "時間割",
+      "short_name": "時間割",
+      "description": "今日の授業スケジュールを確認",
+      "url": "/timetable",
+      "icons": [{ "src": "/icons/timetable-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "お知らせ",
+      "short_name": "お知らせ",
+      "description": "重要なお知らせを確認",
+      "url": "/notifications",
+      "icons": [{ "src": "/icons/notifications-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "学習分析",
+      "short_name": "分析",
+      "description": "学習進捗と分析データを確認",
+      "url": "/analytics",
+      "icons": [{ "src": "/icons/analytics-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "デスクトップ版ダッシュボード"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "375x812",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "モバイル版ダッシュボード"
+    }
+  ],
+  "related_applications": [],
+  "protocol_handlers": [
+    {
+      "protocol": "web+university",
+      "url": "/?action=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", ".pdf", ".doc", ".docx"]
+        }
+      ]
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 import { BookOpen, Clock, Edit3, MapPin, Plus, Star, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Input, ResponsiveCard, ResponsiveGrid, ResponsiveModal, Select } from '../ui/ResponsiveComponents';
+import { Button, Input, ResponsiveCard, ResponsiveGrid, ResponsiveModal, Select } from '../ui';
 
 // 履修科目データの型定義
 interface Subject {
@@ -251,7 +251,7 @@ const SubjectsPage = () => {
           {tabs.map(tab => (
             <button
               key={tab.key}
-              onClick={() => setSelectedTab(tab.key as any)}
+              onClick={() => setSelectedTab(tab.key as 'enrolled' | 'available' | 'completed')}
               className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors touch-target ${
                 selectedTab === tab.key
                   ? 'bg-blue-600 text-white'

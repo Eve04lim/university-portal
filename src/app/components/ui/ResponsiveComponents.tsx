@@ -81,27 +81,27 @@ export const ResponsiveGrid = ({
 };
 
 // ResponsiveTable コンポーネント
-interface Column {
+interface Column<T = Record<string, unknown>> {
   key: string;
   label: string;
   width?: string;
   hideOnMobile?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
 }
 
-interface ResponsiveTableProps {
-  columns: Column[];
-  data: any[];
-  onRowClick?: (row: any) => void;
+interface ResponsiveTableProps<T = Record<string, unknown>> {
+  columns: Column<T>[];
+  data: T[];
+  onRowClick?: (row: T) => void;
   emptyMessage?: string;
 }
 
-export const ResponsiveTable = ({ 
+export const ResponsiveTable = <T extends Record<string, unknown>>({ 
   columns, 
   data, 
   onRowClick,
   emptyMessage = "データがありません" 
-}: ResponsiveTableProps) => {
+}: ResponsiveTableProps<T>) => {
   if (data.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -136,7 +136,7 @@ export const ResponsiveTable = ({
               >
                 {columns.map((column) => (
                   <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
+                    {column.render ? column.render(row[column.key], row) : (row[column.key] as React.ReactNode)}
                   </td>
                 ))}
               </tr>
@@ -164,7 +164,7 @@ export const ResponsiveTable = ({
                       {column.label}:
                     </span>
                     <span className="text-sm text-gray-900 flex-1 text-right ml-2">
-                      {column.render ? column.render(row[column.key], row) : row[column.key]}
+                      {column.render ? column.render(row[column.key], row) : (row[column.key] as React.ReactNode)}
                     </span>
                   </div>
                 ))}

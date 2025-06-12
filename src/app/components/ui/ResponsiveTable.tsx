@@ -2,21 +2,21 @@
 
 import React from 'react';
 
-interface Column {
+interface Column<T = Record<string, unknown>> {
   key: string;
   label: string;
   width?: string;
   hideOnMobile?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
 }
 
-interface ResponsiveTableProps {
-  columns: Column[];
-  data: any[];
-  onRowClick?: (row: any) => void;
+interface ResponsiveTableProps<T = Record<string, unknown>> {
+  columns: Column<T>[];
+  data: T[];
+  onRowClick?: (row: T) => void;
 }
 
-const ResponsiveTable = ({ columns, data, onRowClick }: ResponsiveTableProps) => {
+const ResponsiveTable = <T extends Record<string, unknown>>({ columns, data, onRowClick }: ResponsiveTableProps<T>) => {
   return (
     <>
       {/* デスクトップ用テーブル */}
@@ -43,7 +43,7 @@ const ResponsiveTable = ({ columns, data, onRowClick }: ResponsiveTableProps) =>
               >
                 {columns.map((column) => (
                   <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
+                    {column.render ? column.render(row[column.key], row) : (row[column.key] as React.ReactNode)}
                   </td>
                 ))}
               </tr>
@@ -70,7 +70,7 @@ const ResponsiveTable = ({ columns, data, onRowClick }: ResponsiveTableProps) =>
                     {column.label}:
                   </span>
                   <span className="text-sm text-gray-900 w-2/3 text-right">
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
+                    {column.render ? column.render(row[column.key], row) : (row[column.key] as React.ReactNode)}
                   </span>
                 </div>
               ))}

@@ -1,37 +1,17 @@
 'use client';
 
-import { AlertTriangle, Archive, Bell, Calendar, ChevronRight, Clock, Eye, Info, Star, Tag, User } from 'lucide-react';
+import { AlertTriangle, Archive, Bell, Calendar, ChevronRight, Clock, Eye, Star, Tag, User } from 'lucide-react';
 import React, { useState } from 'react';
-import { Button, Input, ResponsiveCard, ResponsiveGrid, ResponsiveModal, Select } from '../ui/ResponsiveComponents';
+import { Button, Input, ResponsiveCard, ResponsiveGrid, ResponsiveModal, Select } from '../ui';
 
-// お知らせデータの型定義
-interface Notification {
-  id: string;
-  title: string;
-  content: string;
-  summary: string;
-  category: '重要' | '一般' | 'イベント' | 'システム' | '休講' | 'レポート';
-  priority: 'urgent' | 'high' | 'normal' | 'low';
-  author: string;
-  department: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  expiresAt?: Date;
-  read: boolean;
-  starred: boolean;
-  attachments?: string[];
-  tags: string[];
-  targetAudience: string[];
-}
+// Custom hooks
+import { useNotificationActions, type Notification } from '../../../hooks/useNotificationActions';
+import { useNotificationFilters } from '../../../hooks/useNotificationFilters';
+import { useNotificationSearch } from '../../../hooks/useNotificationSearch';
 
 const NotificationsPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
+  // Sample notification data
+  const initialNotifications: Notification[] = [
     {
       id: '1',
       title: 'レポート提出期限のお知らせ',
@@ -272,71 +252,25 @@ TA: ta-database@university.ac.jp`,
       tags: ['学園祭', '実行委員', '募集'],
       targetAudience: ['全学生']
     }
-  ]);
-
-  const categories = ['重要', '一般', 'イベント', 'システム', '休講', 'レポート'];
-  const priorities = ['urgent', 'high', 'normal', 'low'];
-
-  const categoryOptions = [
-    { value: 'all', label: 'すべてのカテゴリ' },
-    ...categories.map(cat => ({ value: cat, label: cat }))
   ];
 
-  const priorityOptions = [
-    { value: 'all', label: 'すべての優先度' },
-    { value: 'urgent', label: '緊急' },
-    { value: 'high', label: '高' },
-    { value: 'normal', label: '普通' },
-    { value: 'low', label: '低' }
-  ];
+  // Custom hooks
+  const notificationManager = useNotificationActions(initialNotifications);
+  const notificationFilters = useNotificationFilters();
+  const notificationSearch = useNotificationSearch();
+  
+  // Local modal state
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // フィルタリング
-  const filteredNotifications = notifications.filter(notification => {
-    if (selectedCategory !== 'all' && notification.category !== selectedCategory) return false;
-    if (selectedPriority !== 'all' && notification.priority !== selectedPriority) return false;
-    if (showUnreadOnly && notification.read) return false;
-    if (searchQuery && !notification.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !notification.content.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !notification.author.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  // Apply filters and search to notifications
+  const filteredByFilters = notificationFilters.applyFilters(notificationManager.notifications);
+  const filteredNotifications = notificationSearch.isSearching 
+    ? notificationSearch.quickSearch(filteredByFilters, notificationSearch.searchQuery)
+    : filteredByFilters;
 
-  // 統計情報
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const urgentCount = notifications.filter(n => n.priority === 'urgent').length;
-  const starredCount = notifications.filter(n => n.starred).length;
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-50 border-red-200';
-      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'normal': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'low': return 'text-gray-600 bg-gray-50 border-gray-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return <AlertTriangle size={16} className="text-red-600" />;
-      case 'high': return <Info size={16} className="text-orange-600" />;
-      case 'normal': return <Bell size={16} className="text-blue-600" />;
-      case 'low': return <Clock size={16} className="text-gray-600" />;
-      default: return <Bell size={16} className="text-gray-600" />;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case '重要': return 'text-red-600 bg-red-50';
-      case '一般': return 'text-blue-600 bg-blue-50';
-      case 'イベント': return 'text-purple-600 bg-purple-50';
-      case 'システム': return 'text-green-600 bg-green-50';
-      case '休講': return 'text-orange-600 bg-orange-50';
-      case 'レポート': return 'text-pink-600 bg-pink-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
+  // Get statistics
+  const { unreadCount, urgentCount, starredCount } = notificationManager.statistics;
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('ja-JP', {
@@ -348,43 +282,10 @@ TA: ta-database@university.ac.jp`,
     }).format(date);
   };
 
-  const formatRelativeTime = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMinutes < 60) return `${diffMinutes}分前`;
-    if (diffHours < 24) return `${diffHours}時間前`;
-    if (diffDays < 7) return `${diffDays}日前`;
-    return formatDate(date);
-  };
-
   const handleNotificationClick = (notification: Notification) => {
     setSelectedNotification(notification);
     setIsModalOpen(true);
-    
-    // 未読を既読にする
-    if (!notification.read) {
-      setNotifications(prev => 
-        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-      );
-    }
-  };
-
-  const toggleStar = (notificationId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, starred: !n.starred } : n)
-    );
-  };
-
-  const markAsRead = (notificationId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-    );
+    notificationManager.handleNotificationClick(notification);
   };
 
   const closeModal = () => {
@@ -438,26 +339,26 @@ TA: ta-database@university.ac.jp`,
             <Input
               type="text"
               placeholder="タイトル、内容、投稿者で検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={notificationSearch.searchQuery}
+              onChange={(e) => notificationSearch.setSearchQuery(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              options={categoryOptions}
+              value={notificationFilters.filters.selectedCategory}
+              onChange={(e) => notificationFilters.setCategory(e.target.value)}
+              options={notificationFilters.categoryOptions}
             />
             <Select
-              value={selectedPriority}
-              onChange={(e) => setSelectedPriority(e.target.value)}
-              options={priorityOptions}
+              value={notificationFilters.filters.selectedPriority}
+              onChange={(e) => notificationFilters.setPriority(e.target.value)}
+              options={notificationFilters.priorityOptions}
             />
             <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg touch-target">
               <input
                 type="checkbox"
-                checked={showUnreadOnly}
-                onChange={(e) => setShowUnreadOnly(e.target.checked)}
+                checked={notificationFilters.filters.showUnreadOnly}
+                onChange={(e) => notificationFilters.setShowUnreadOnly(e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">未読のみ</span>
@@ -481,7 +382,7 @@ TA: ta-database@university.ac.jp`,
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {getPriorityIcon(notification.priority)}
+                  {notificationManager.getPriorityIcon(notification.priority)}
                   <h3 className={`text-base sm:text-lg font-semibold line-clamp-1 ${notification.read ? 'text-gray-900' : 'text-gray-900 font-bold'}`}>
                     {notification.title}
                   </h3>
@@ -490,10 +391,10 @@ TA: ta-database@university.ac.jp`,
                   )}
                 </div>
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <span className={`px-2 py-1 text-xs font-medium rounded ${getCategoryColor(notification.category)}`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${notificationManager.getCategoryColor(notification.category)}`}>
                     {notification.category}
                   </span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(notification.priority)}`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded border ${notificationManager.getPriorityColor(notification.priority)}`}>
                     {notification.priority === 'urgent' && '緊急'}
                     {notification.priority === 'high' && '高'}
                     {notification.priority === 'normal' && '普通'}
@@ -513,7 +414,7 @@ TA: ta-database@university.ac.jp`,
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />
-                    {formatRelativeTime(notification.createdAt)}
+                    {notificationManager.formatRelativeTime(notification.createdAt)}
                   </span>
                   {notification.attachments && notification.attachments.length > 0 && (
                     <span className="flex items-center gap-1">
@@ -525,7 +426,10 @@ TA: ta-database@university.ac.jp`,
               </div>
               <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                 <button
-                  onClick={(e) => toggleStar(notification.id, e)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    notificationManager.toggleStar(notification.id);
+                  }}
                   className={`p-1 rounded-full transition-colors touch-target ${
                     notification.starred 
                       ? 'text-yellow-500 hover:text-yellow-600' 
@@ -536,7 +440,10 @@ TA: ta-database@university.ac.jp`,
                 </button>
                 {!notification.read && (
                   <button
-                    onClick={(e) => markAsRead(notification.id, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      notificationManager.markAsRead(notification.id);
+                    }}
                     className="p-1 text-gray-400 hover:text-blue-600 rounded-full transition-colors touch-target"
                   >
                     <Eye size={16} />
@@ -568,12 +475,12 @@ TA: ta-database@university.ac.jp`,
           <div className="p-6 space-y-6">
             <div>
               <div className="flex items-center gap-3 mb-3 flex-wrap">
-                {getPriorityIcon(selectedNotification.priority)}
+                {notificationManager.getPriorityIcon(selectedNotification.priority)}
                 <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{selectedNotification.title}</h3>
-                <span className={`px-2 py-1 text-sm font-medium rounded ${getCategoryColor(selectedNotification.category)}`}>
+                <span className={`px-2 py-1 text-sm font-medium rounded ${notificationManager.getCategoryColor(selectedNotification.category)}`}>
                   {selectedNotification.category}
                 </span>
-                <span className={`px-2 py-1 text-sm font-medium rounded border ${getPriorityColor(selectedNotification.priority)}`}>
+                <span className={`px-2 py-1 text-sm font-medium rounded border ${notificationManager.getPriorityColor(selectedNotification.priority)}`}>
                   {selectedNotification.priority === 'urgent' && '緊急'}
                   {selectedNotification.priority === 'high' && '高'}
                   {selectedNotification.priority === 'normal' && '普通'}
@@ -652,7 +559,7 @@ TA: ta-database@university.ac.jp`,
               <Button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleStar(selectedNotification.id, e);
+                  notificationManager.toggleStar(selectedNotification.id);
                 }}
                 variant={selectedNotification.starred ? "primary" : "secondary"}
                 className="flex-1"

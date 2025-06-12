@@ -1,13 +1,16 @@
 'use client';
 
-import { Bell, BookOpen, Calendar, Home, Menu, Star, User, X } from 'lucide-react';
+import { Bell, BookOpen, Calendar, Home, Menu, Star, User, X, LucideIcon, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import PWAInstallPrompt from '../pwa/PWAInstallPrompt';
+import OfflineIndicator from '../pwa/OfflineIndicator';
+import { useAppStore } from '../../../store/useAppStore';
 
 interface MenuItem {
   name: string;
-  icon: any;
+  icon: LucideIcon;
   href: string;
   active?: boolean;
 }
@@ -19,7 +22,16 @@ interface ResponsiveLayoutProps {
 const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const pathname = usePathname();
+  const { initializeData, grades } = useAppStore();
+
+  // データ初期化
+  useEffect(() => {
+    if (grades.length === 0) {
+      initializeData();
+    }
+  }, [grades.length, initializeData]);
 
   // 画面サイズ検出
   useEffect(() => {
@@ -45,11 +57,29 @@ const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
     };
   }, [isMobileMenuOpen, isMobile]);
 
+  // PWAインストールプロンプトの表示タイミング
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+      if (!hasSeenPrompt) {
+        setShowInstallPrompt(true);
+      }
+    }, 5000); // 5秒後に表示
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleInstallPromptDismiss = () => {
+    setShowInstallPrompt(false);
+    localStorage.setItem('pwa-install-prompt-seen', 'true');
+  };
+
   const menuItems: MenuItem[] = [
     { name: "ホーム", icon: Home, href: "/" },
     { name: "時間割", icon: Calendar, href: "/timetable" },
     { name: "履修科目", icon: BookOpen, href: "/subjects" },
     { name: "成績", icon: Star, href: "/grades" },
+    { name: "学習分析", icon: BarChart3, href: "/analytics" },
     { name: "お知らせ", icon: Bell, href: "/notifications" },
     { name: "プロフィール", icon: User, href: "/profile" },
   ];
@@ -213,6 +243,12 @@ const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
           })}
         </div>
       </nav>
+
+      {/* PWA コンポーネント */}
+      <OfflineIndicator />
+      {showInstallPrompt && (
+        <PWAInstallPrompt onDismiss={handleInstallPromptDismiss} />
+      )}
     </div>
   );
 };

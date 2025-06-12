@@ -17,11 +17,22 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: '大学ポータル',
-  description: '大学生活をサポートするポータルサイト',
+  description: '大学生活をサポートするポータルサイト - 成績管理、時間割、学習分析、お知らせ機能を提供',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: '大学ポータル',
+    title: 'University Portal',
+  },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
   },
 };
 

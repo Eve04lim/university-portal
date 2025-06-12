@@ -2,7 +2,7 @@
 
 import { Award, BookOpen, Calendar, ChevronRight, Clock, FileText, Star, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { ResponsiveCard, ResponsiveGrid } from '../ui/ResponsiveComponents';
+import { ResponsiveCard, ResponsiveGrid } from '../ui';
 
 const Dashboard = () => {
   // サンプルデータ

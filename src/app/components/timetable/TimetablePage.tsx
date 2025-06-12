@@ -1,28 +1,16 @@
 'use client';
 
 import { Clock, Edit3, MapPin, Plus, User } from 'lucide-react';
-import { useState } from 'react';
-import { ResponsiveCard, ResponsiveGrid, ResponsiveModal } from '../ui/ResponsiveComponents';
+import { ResponsiveCard, ResponsiveGrid, ResponsiveModal } from '../ui';
 
-// 時間割データの型定義
-interface TimetableItem {
-  id: string;
-  subject: string;
-  professor: string;
-  room: string;
-  startTime: string;
-  endTime: string;
-  dayOfWeek: number; // 0: 日, 1: 月, 2: 火, 3: 水, 4: 木, 5: 金, 6: 土
-  period: number; // 1-7時限
-  color: string;
-}
+// Custom hooks
+import { useTimetableView, type TimetableItem } from '../../../hooks/useTimetableView';
+import { useTimetableEvents } from '../../../hooks/useTimetableEvents';
+import { useTimetableResponsive } from '../../../hooks/useTimetableResponsive';
 
 const TimetablePage = () => {
-  const [selectedClass, setSelectedClass] = useState<TimetableItem | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   // サンプル時間割データ
-  const timetableData: TimetableItem[] = [
+  const initialTimetableData: TimetableItem[] = [
     {
       id: '1',
       subject: 'データベース論',
@@ -113,36 +101,20 @@ const TimetablePage = () => {
     }
   ];
 
-  // 曜日と時限の定義
-  const daysOfWeek = ['月', '火', '水', '木', '金'];
-  const periods = [
-    { number: 1, time: '09:00-10:30' },
-    { number: 2, time: '10:40-12:10' },
-    { number: 3, time: '13:00-14:30' },
-    { number: 4, time: '14:40-16:10' },
-    { number: 5, time: '16:20-17:50' },
-    { number: 6, time: '18:00-19:30' },
-    { number: 7, time: '19:40-21:10' }
-  ];
-
-  // 特定の曜日・時限の授業を取得
-  const getClassForSlot = (dayOfWeek: number, period: number) => {
-    return timetableData.find(item => 
-      item.dayOfWeek === dayOfWeek + 1 && item.period === period
-    );
-  };
-
-  // 授業詳細を表示
-  const handleClassClick = (classItem: TimetableItem) => {
-    setSelectedClass(classItem);
-    setIsModalOpen(true);
-  };
-
-  // モーダルを閉じる
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedClass(null);
-  };
+  // Custom hooks
+  const timetableView = useTimetableView();
+  const timetableEvents = useTimetableEvents(initialTimetableData);
+  const timetableResponsive = useTimetableResponsive(
+    timetableEvents.timetableData,
+    timetableView.periods,
+    timetableView.daysOfWeek
+  );
+  
+  // Extract frequently used data and functions
+  const { periods, daysOfWeek } = timetableView;
+  const { timetableData, getClassForSlot, statistics } = timetableEvents;
+  const { handleClassClick, modal, closeModal } = timetableResponsive;
+  const { selectedClass, isModalOpen } = modal;
 
   return (
     <div className="space-y-6">
@@ -168,7 +140,7 @@ const TimetablePage = () => {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-900 border-b">
                     時限
                   </th>
-                  {daysOfWeek.map((day, index) => (
+                  {daysOfWeek.map((day) => (
                     <th key={day} className="px-4 py-3 text-center text-sm font-medium text-gray-900 border-b border-l">
                       {day}曜日
                     </th>
@@ -221,9 +193,7 @@ const TimetablePage = () => {
       {/* モバイル用時間割（曜日別） */}
       <div className="md:hidden space-y-4">
         {daysOfWeek.map((day, dayIndex) => {
-          const dayClasses = periods
-            .map(period => ({ period, class: getClassForSlot(dayIndex, period.number) }))
-            .filter(item => item.class);
+          const dayClasses = timetableResponsive.getDayClasses(dayIndex, timetableData);
 
           return (
             <ResponsiveCard key={day} className="p-4">
@@ -264,17 +234,17 @@ const TimetablePage = () => {
       <ResponsiveGrid cols={{ default: 1, sm: 3 }} gap={4}>
         <ResponsiveCard className="p-4 sm:p-6">
           <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">履修単位数</h3>
-          <div className="text-2xl sm:text-3xl font-bold text-blue-600">24単位</div>
+          <div className="text-2xl sm:text-3xl font-bold text-blue-600">{statistics.totalCredits}単位</div>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">今学期の履修単位</p>
         </ResponsiveCard>
         <ResponsiveCard className="p-4 sm:p-6">
           <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">授業数</h3>
-          <div className="text-2xl sm:text-3xl font-bold text-green-600">{timetableData.length}科目</div>
+          <div className="text-2xl sm:text-3xl font-bold text-green-600">{statistics.subjectCount}科目</div>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">履修中の科目数</p>
         </ResponsiveCard>
         <ResponsiveCard className="p-4 sm:p-6">
           <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">空きコマ</h3>
-          <div className="text-2xl sm:text-3xl font-bold text-orange-600">7コマ</div>
+          <div className="text-2xl sm:text-3xl font-bold text-orange-600">{statistics.emptySlots}コマ</div>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">今週の空きコマ数</p>
         </ResponsiveCard>
       </ResponsiveGrid>
